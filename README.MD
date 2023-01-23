@@ -94,6 +94,8 @@ Yay!  Goal 1 is complete.  Success!
 
 Now that we have successfully compiled and executed our application, I wanted to containerize the application and execute it locally.
 
+There are multiple options to containerize applications that have evolved over the years.  The first mover in the space that I remember is Docker, and the [Docker Get Started Overview](https://docs.docker.com/get-started/) documentation provides a gentle introduction to containerization.  Since then the containerization ecosystem has matured and some standards have emerged, like the [Open Container Initiative (OCI)](https://github.com/opencontainers/image-spec).  
+
 ### Installed Docker Desktop
 
 Installed Docker Desktop 4.15.0 (93002) to get a docker daemon running on MSI Laptop, since this is required in order for ./gradlew bootBuildImage to build an OCI container.  Used WSL2 instead of Hyper-V (because it was recommended in the installer).
@@ -277,3 +279,37 @@ dc622bd7e11b: Pushed
 grego@MSI MINGW64 ~/gitrepos/demo
 $ 
 ```
+
+Now that we have an image pushed to a Docker Hub Repository, we should be able to PULL that image from a cloud service provider like GCP.   
+
+### Create a GKE cluster on GCP
+
+I have a GCP project called SpringBootDemoGKEDeploy, and I have a kubernetes cluster defined called [hello-java-cluster](https://console.cloud.google.com/kubernetes/clusters/details/us-central1-c/hello-java-cluster/details?project=springbootdemogkedeploy).  It also looks like this cluster has two nodes and has been up and idling (kube-system namespace pods only) since 7-Jan 2023.  The forecasted bill for January is $65, and it looks like with NO USER WORKLOAD running yet at all, my operational run rate is roughly $2.50 per day, or about $75 per month.  Yikes.  
+
+I used the [Google Cloud Console to attempt to add a new workload](https://cloud.google.com/kubernetes-engine/docs/how-to/stateless-apps#console) to a new namespace (greg).  It failed, but getting closer...
+
+```bash
+Can’t pull container images when starting the Pods.
+Reason
+The image tags might have typos or the image pull settings might be incorrect.
+Source
+demo-1-745f8b9686-5k5rg
+demo-1-745f8b9686-dpjgc
+Recommendation
+Check the images and their tags for typos.
+Check for errors when pulling the images and their tags manually. In the Cloud Shell, run this command: docker pull image_name:tag.
+Check the image pull secrets settings.
+Check the firewall for the cluster to make sure the cluster can connect to the 'gshrivepitsteel/demo' registry.
+```
+
+[Learn more](https://cloud.google.com/kubernetes-engine/docs/troubleshooting?&_ga=2.221354267.-2017250814.1673090134#ImagePullBackOff)
+
+Looks like GCP/GKE does not have authorization/access to my image on Docker Hub.
+
+See similar issue on [stackoverflow](https://stackoverflow.com/questions/74512362/gke-uanble-to-pull-public-images-from-my-personal-dockerhub-repository-the-sam)
+
+Looks like I need to do [this](https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/), and beforehand I need to get [kubectl configured](https://cloud.google.com/kubernetes-engine/docs/how-to/cluster-access-for-kubectl) on my laptop to access the GKE cluster.   
+
+# TODO
+- [ ] fix docker pull 
+
